@@ -285,6 +285,7 @@ headers = {'User-Agent': random.choice(UserAgent_List),
 # 图片存储路径
 file_path = '/Users/Sheldon/Downloads'
 # 获取总页数
+
 if len(sys.argv)==2:
     pages = int(sys.argv[1])
 else:
