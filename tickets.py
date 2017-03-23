@@ -14,8 +14,8 @@ Options:
     -z         直达
 
 Examples:
-    tickets 上海 北京 2016-10-10
-    tickets -dg 成都 南京 2016-10-10
+    tickets 上海 北京 2017-03-24
+    tickets -dg 成都 南京 2017-03-24
 """
 
 import requests
@@ -23,6 +23,12 @@ from docopt import docopt
 from prettytable import PrettyTable
 from colorama import init, Fore
 from stations import stations
+
+"""
+docopt --creates beautiful command-line interfaces //格式化命令行参数
+prettytable -- beautiful table format  //输出标准的table格式
+colorama --  colored text can then be done using //着色
+"""
 
 init()
 
@@ -32,9 +38,7 @@ class TrainsCollection:
 
     def __init__(self, available_trains, options):
         """查询到的火车班次集合
-
-        :param available_trains: 一个列表, 包含可获得的火车班次, 每个
-                                 火车班次是一个字典
+        :param available_trains: 一个列表, 包含可获得的火车班次, 每个火车班次是一个字典
         :param options: 查询的选项, 如高铁, 动车, etc...
         """
         self.available_trains = available_trains
