@@ -4,8 +4,13 @@ python 3.5.2
 '''
 # 导入模块
 import time
-import requests, re, random, os ,sys
+import requests
+import re
+import random
+import os
+import sys
 from bs4 import BeautifulSoup
+
 
 def ip_test(ip, url_for_test='https://www.baidu.com', set_timeout=10):
     '''
@@ -16,13 +21,15 @@ def ip_test(ip, url_for_test='https://www.baidu.com', set_timeout=10):
     :return:
     '''
     try:
-        r = requests.get(url_for_test, headers=headers, proxies={'http': ip[0]+':'+ip[1]}, timeout=set_timeout)
+        r = requests.get(url_for_test, headers=headers, proxies={
+                         'http': ip[0] + ':' + ip[1]}, timeout=set_timeout)
         if r.status_code == 200:
             return True
         else:
             return False
     except:
         return False
+
 
 def scrawl_ip(url, num, url_for_test='https://www.baidu.com'):
     '''
@@ -33,26 +40,29 @@ def scrawl_ip(url, num, url_for_test='https://www.baidu.com'):
     :return:
     '''
     ip_list = []
-    for num_page in range(1, num+1):
+    for num_page in range(1, num + 1):
         url = url + str(num_page)
 
         response = requests.get(url, headers=headers)
         response.encoding = 'utf-8'
         content = response.text
 
-        pattern = re.compile('<td class="country">.*?alt="Cn" />.*?</td>.*?<td>(.*?)</td>.*?<td>(.*?)</td>', re.S)
+        pattern = re.compile(
+            '<td class="country">.*?alt="Cn" />.*?</td>.*?<td>(.*?)</td>.*?<td>(.*?)</td>', re.S)
         items = re.findall(pattern, content)
         for ip in items:
             if ip_test(ip[1], url_for_test):  # 测试爬取到ip是否可用，测试通过则加入ip_list列表之中
                 print('测试通过，IP地址为' + str(ip[0]) + ':' + str(ip[1]))
-                ip_list.append(ip[0]+':'+ip[1])
+                ip_list.append(ip[0] + ':' + ip[1])
         return ip_list
 
     time.sleep(5)  # 等待5秒爬取下一页
 
+
 def get_random_ip():    # 随机获取一个IP
-    ind = random.randint(0, len(total_ip)-1)
+    ind = random.randint(0, len(total_ip) - 1)
     return total_ip[ind]
+
 
 def download_img(img_list, img_title):
     '''
@@ -67,11 +77,11 @@ def download_img(img_list, img_title):
     :return:
     '''
 
-    img_title = format_name(img_title) # 如果图册名字有特殊字符需要处理。不然在windows下保存不了文件夹
+    img_title = format_name(img_title)  # 如果图册名字有特殊字符需要处理。不然在windows下保存不了文件夹
     for img_urls in img_list:
-        img_url = img_urls.attrs['src'] # 单个图片的url地址
+        img_url = img_urls.attrs['src']  # 单个图片的url地址
         print(img_url)
-        title = img_urls.attrs['alt'] # 单个图片的名字
+        title = img_urls.attrs['alt']  # 单个图片的名字
         print(title)
 
         try:
@@ -83,14 +93,16 @@ def download_img(img_list, img_title):
             exists = os.path.exists(img_title)
             if not exists:
                 try:
-                    img_html = requests.get(img_url, headers=headers, stream=True, timeout=20, verify=True)
-                    with open(title+".jpg", 'wb') as f:
+                    img_html = requests.get(
+                        img_url, headers=headers, stream=True, timeout=20, verify=True)
+                    with open(title + ".jpg", 'wb') as f:
                         f.write(img_html.content)
                         f.close()
                 except:
                     continue
         except:
             continue
+
 
 def scrawl_list(url_list, proxy_flag=False, try_time=0):
     '''
@@ -110,18 +122,21 @@ def scrawl_list(url_list, proxy_flag=False, try_time=0):
             bsop = BeautifulSoup(text, 'html.parser')
 
             url_imgs = []
-            li_list = bsop.find('ul', {'class': 'wp-list clearfix'}).findAll('li', {'class':'wp-item'})
+            li_list = bsop.find(
+                'ul', {'class': 'wp-list clearfix'}).findAll('li', {'class': 'wp-item'})
             for i in li_list:
-                url_img = i.find('h3',{'class':'tit'}).find('a').attrs['href']
+                url_img = i.find('h3', {'class': 'tit'}
+                                 ).find('a').attrs['href']
                 url_imgs.append(url_img)
             return url_imgs
         except:
             return scrawl_list(url_list, proxy_flag=True)  # 否则调用自己，使用3次IP代理
     else:   # 使用代理时
-        if try_time<count_time:
+        if try_time < count_time:
             try:
-                print('尝试第'+str(try_time+1)+'次使用代理下载')
-                html = requests.get(url_list, headers=headers, proxies={'http': get_random_ip()}, timeout=10)
+                print('尝试第' + str(try_time + 1) + '次使用代理下载')
+                html = requests.get(url_list, headers=headers, proxies={
+                                    'http': get_random_ip()}, timeout=10)
                 html.encoding = 'gb2312'
                 text = html.text
 
@@ -129,22 +144,26 @@ def scrawl_list(url_list, proxy_flag=False, try_time=0):
 
                 url_imgs = []
                 # url_titles = []
-                li_list = bsop.find('ul', {'class': 'wp-list clearfix'}).findAll('li', {'class': 'wp-item'})
+                li_list = bsop.find(
+                    'ul', {'class': 'wp-list clearfix'}).findAll('li', {'class': 'wp-item'})
                 for i in li_list:
-                    url_img = i.find('h3', {'class': 'tit'}).find('a').attrs['href']
+                    url_img = i.find('h3', {'class': 'tit'}).find(
+                        'a').attrs['href']
                     url_imgs.append(url_img)
-                print('状态码为'+str(html.status_code))
-                if html.status_code==200:
+                print('状态码为' + str(html.status_code))
+                if html.status_code == 200:
                     print('url_imgs通过IP代理处理成功！')
                     return url_imgs  # 代理成功下载！
                 else:
                     return scrawl_list(url_list, proxy_flag=True, try_time=(try_time + 1))
             except:
                 print('url_imgs代理下载失败，尝试下次代理')
-                return scrawl_list(url_list, proxy_flag=True, try_time=(try_time+1))  # 否则调用自己，使用3次IP代理
+                # 否则调用自己，使用3次IP代理
+                return scrawl_list(url_list, proxy_flag=True, try_time=(try_time + 1))
         else:
             print('url_imgs爬取失败，请检查网页')
             return None
+
 
 def scrawl_url(url, proxy_flag=False, try_time=0):
     '''
@@ -163,38 +182,45 @@ def scrawl_url(url, proxy_flag=False, try_time=0):
             text = html.text
 
             bsop = BeautifulSoup(text, 'html.parser')
-            img_list = bsop.find('div', {'class': 'postContent'}).find('p').findAll('img')
-            img_title = bsop.find('div', {'class': 'metaRight'}).find('h2').find('a').text
+            img_list = bsop.find('div', {'class': 'postContent'}).find(
+                'p').findAll('img')
+            img_title = bsop.find('div', {'class': 'metaRight'}).find(
+                'h2').find('a').text
 
             return img_list, img_title
 
         except:
             return scrawl_url(url, proxy_flag=True)  # 否则调用自己，使用3次IP代理
     else:   # 使用代理时
-        if try_time<count_time:
+        if try_time < count_time:
             try:
-                print('尝试第'+str(try_time+1)+'次使用代理下载')
+                print('尝试第' + str(try_time + 1) + '次使用代理下载')
 
-                html = requests.get(url, headers=headers, proxies={'http': get_random_ip()},timeout=30)
+                html = requests.get(url, headers=headers, proxies={
+                                    'http': get_random_ip()}, timeout=30)
                 html.encoding = 'gb2312'
 
                 text = html.text
                 bsop = BeautifulSoup(text, 'html.parser')
-                img_list = bsop.find('div', {'class': 'postContent'}).find('p').findAll('img')
-                img_title = bsop.find('div', {'class': 'metaRight'}).find('h2').find('a').text
+                img_list = bsop.find('div', {'class': 'postContent'}).find(
+                    'p').findAll('img')
+                img_title = bsop.find('div', {'class': 'metaRight'}).find(
+                    'h2').find('a').text
 
-                print('状态码为'+str(html.status_code))
-                if html.status_code==200:
+                print('状态码为' + str(html.status_code))
+                if html.status_code == 200:
                     print('图片通过IP代理处理成功！')
                     return img_list, img_title  # 代理成功下载！
                 else:
                     return scrawl_url(url, proxy_flag=True, try_time=(try_time + 1))
             except:
                 print('IP代理下载失败')
-                return scrawl_url(url, proxy_flag=True, try_time=(try_time+1))  # 否则调用自己，使用3次IP代理
+                # 否则调用自己，使用3次IP代理
+                return scrawl_url(url, proxy_flag=True, try_time=(try_time + 1))
         else:
             print('图片url列表未能爬取，请检查网页')
             return None
+
 
 def download_urls(pages):
     '''
@@ -206,18 +232,19 @@ def download_urls(pages):
                  ]
     '''
     url_imgss = []
-    for i in range(1, pages+1):
+    for i in range(1, pages + 1):
         try:
             url_list = 'http://www.meizitu.com/a/list_1_' + str(i) + '.html'
             url_imgs = scrawl_list(url_list)
             if not url_imgs:
                 continue
             url_imgss.append(url_imgs)
-            print("第"+str(i)+"页url爬取成功")
-            time.sleep(5)   #休息5秒篇爬取下一页
-        except: # 如果其中某一页出错，则跳过该页，继续爬取下一页，从而不使程序中断
+            print("第" + str(i) + "页url爬取成功")
+            time.sleep(5)  # 休息5秒篇爬取下一页
+        except:  # 如果其中某一页出错，则跳过该页，继续爬取下一页，从而不使程序中断
             continue
     return url_imgss
+
 
 def format_name(img_title):
     '''
@@ -225,10 +252,11 @@ def format_name(img_title):
     :param img_title:
     :return:
     '''
-    for i in ['\\','/',':','*','?','"','<','>','!','|']:
+    for i in ['\\', '/', ':', '*', '?', '"', '<', '>', '!', '|']:
         while i in img_title:
             img_title = img_title.strip().replace(i, '')
     return img_title
+
 
 def get_total_pages(first_url):
     '''
@@ -240,7 +268,7 @@ def get_total_pages(first_url):
     html.encoding = 'gb2312'
     text = html.text
     bsop = BeautifulSoup(text, 'html.parser')
-    lis =bsop.find('div',{'id':'wp_page_numbers'}).find('ul').findAll('li')
+    lis = bsop.find('div', {'id': 'wp_page_numbers'}).find('ul').findAll('li')
     pages = lis[-1].find('a').attrs['href'].split('.')[0].split('_')[-1]
     pages = int(pages)
     return pages
@@ -286,7 +314,7 @@ headers = {'User-Agent': random.choice(UserAgent_List),
 file_path = '/Users/Sheldon/Downloads'
 # 获取总页数
 
-if len(sys.argv)==2:
+if len(sys.argv) == 2:
     pages = int(sys.argv[1])
 else:
     pages = get_total_pages(first_url)
@@ -298,8 +326,8 @@ url_imgss = download_urls(pages)
 for i in url_imgss:
     for j in i:
         try:
-            with open('url.txt','a') as f:
-                f.write(j+"\n")
+            with open('url.txt', 'a') as f:
+                f.write(j + "\n")
                 f.close()
                 print("写入url.txt文件成功")
         except:

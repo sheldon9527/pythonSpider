@@ -32,6 +32,7 @@ colorama --  colored text can then be done using //着色
 
 init()
 
+
 class TrainsCollection:
 
     header = '车次 车站 时间 历时 一等 二等 软卧 硬卧 硬座 无座'.split()
@@ -92,8 +93,8 @@ def cli():
     url = ('https://kyfw.12306.cn/otn/leftTicket/query?'
            'leftTicketDTO.train_date={}&'
            'leftTicketDTO.from_station={}&leftTicketDTO.to_station={}&purpose_codes=ADULT').format(
-                date, from_station, to_station
-           )
+        date, from_station, to_station
+    )
     options = ''.join([
         key for key, value in arguments.items() if value is True
     ])
